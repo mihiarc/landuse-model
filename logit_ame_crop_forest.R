@@ -70,6 +70,24 @@ calc_prob <- function(model, df1, df2) {
   df
 }
 
+pred_data <- function(choice_data, nr_data, georef) {
+  df <- inner_join(choice_data, nr_data,  by = c('fips','year')) %>%
+    inner_join(georef[c('fips','subregion','region','mer100')], by = 'fips') %>%
+    filter(year == 2012 & mer100 == 'east') %>%
+    select(-ends_with('ag')) %>%
+    filter(!is.na(nr.fr), !is.na(nrchange.fr))
+}
+
+aggr_to_county <- function(mfx_df) {
+  df <- mfx_df %>%
+    group_by(fips) %>%
+    summarize(mfx_crop = weighted.mean(mfx_crop, w = xfact), 
+              mfx_pasture = weighted.mean(mfx_pasture, w = xfact), 
+              mfx_forest = weighted.mean(mfx_forest, w = xfact),
+              mfx_urban = weighted.mean(mfx_urban, w = xfact)) %>%
+    ungroup()
+}
+
 # load data--------------------------------------------------------------------
 
 georef <- tbl_df(read.csv("forest_georef.csv"))
@@ -97,13 +115,7 @@ start_forest$lcc <- as.numeric(start_forest$lcc)
 # merge and format data---------------------------------------------------------
 # function to format prediction data
 
-pred_data <- function(choice_data, nr_data, georef) {
-  df <- inner_join(choice_data, nr_data,  by = c('fips','year')) %>%
-    inner_join(georef[c('fips','subregion','region','mer100')], by = 'fips') %>%
-    filter(year == 2012 & mer100 == 'east') %>%
-    select(-ends_with('ag')) %>%
-    filter(!is.na(nr.fr), !is.na(nrchange.fr))
-}
+
 
 crstart <- list(no_chg = pred_data(start_crop, nr_data, georef),
                 crnr_chg = pred_data(start_crop, nr_data_crnr_mfx,
@@ -157,13 +169,6 @@ mfx_frstart <- list(crnr_mfx = calc_prob(model_frstart, frstart[[1]], frstart[[2
                     frnr_mfx = calc_prob(model_frstart, frstart[[1]], frstart[[4]]),
                     urnr_mfx = calc_prob(model_frstart, frstart[[1]], frstart[[5]]))
 
-mfx <- list(crstart = mfx_crstart,
-            psstart = mfx_psstart,
-            frstart = mfx_frstart)
-
-saveRDS(mfx, 'crop_forest_mfx.rds')
-
-
 # load and merge georeference
 nri_georef <- readRDS('nri_georef.rds')
 nri_georef$fips <- str_pad(as.character(nri_georef$fips),
@@ -173,21 +178,25 @@ mfx_crstart <- map(mfx_crstart, ~ inner_join(., nri_georef, by = 'riad_id'))
 mfx_psstart <- map(mfx_psstart, ~ inner_join(., nri_georef, by = 'riad_id'))
 mfx_frstart <- map(mfx_frstart, ~ inner_join(., nri_georef, by = 'riad_id'))
 
+mfx <- list(crstart = mfx_crstart,
+                   psstart = mfx_psstart,
+                   frstart = mfx_frstart)
+
+saveRDS(mfx, 'crop_forest_mfx.rds')
+
 # function for aggregating to county level mfx-------------------------------------------------
 
-aggr_to_county <- function(mfx_df) {
-  df <- mfx_df %>%
-    group_by(fips) %>%
-    summarize(mfx_crop = weighted.mean(mfx_crop, w = xfact), 
-              mfx_pasture = weighted.mean(mfx_pasture, w = xfact), 
-              mfx_forest = weighted.mean(mfx_forest, w = xfact),
-              mfx_urban = weighted.mean(mfx_urban, w = xfact)) %>%
-    ungroup()
-}
+
 
 mfx_crstart_county <- map(mfx_crstart, ~ aggr_to_county(.))
 mfx_psstart_county <- map(mfx_psstart, ~ aggr_to_county(.))
 mfx_frstart_county <- map(mfx_frstart, ~ aggr_to_county(.))
+
+mfx_county <- list(crstart = mfx_crstart_county,
+            psstart = mfx_psstart_county,
+            frstart = mfx_frstart_county)
+
+saveRDS(mfx_county, 'crop_forest_mfx_county.rds')
 
 map(mfx_crstart, ~ summary(.))
 map(mfx_crstart_county, ~ summary(.))
