@@ -13,8 +13,8 @@ d1 <- counties %>%
 
 
 ######################################################################
-# 
 ######################################################################
+
 frmap <- tm_shape(filter(d1, mer100 == 'east')) +
 	tm_fill('fr_acres_change', palette = "RdYlGn", style = 'quantile', n = 5, title = 'Change in Forest Acres', legend.hist = T) +
 	tm_layout(scale = 0.8, legend.position = c('right','bottom'), legend.outside = T) +
