@@ -5,7 +5,7 @@ Ported from estimate_logit_crop_forest.R
 
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import statsmodels.api as sm
 from statsmodels.discrete.discrete_model import MNLogit
 from pathlib import Path
@@ -43,7 +43,19 @@ def prepare_estimation_data(start_data: pd.DataFrame,
 
     # Merge data
     data = start_data.merge(nr_data, on=['fips', 'year'])
-    data = data.merge(georef[['fips', 'subregion', 'region']], on='fips')
+
+    # Handle georef columns - it may have both 'fips' and 'county_fips'
+    # Drop county_fips if both exist to avoid confusion
+    if 'fips' in georef.columns and 'county_fips' in georef.columns:
+        georef = georef.drop(columns=['county_fips'])
+    elif 'county_fips' in georef.columns and 'fips' not in georef.columns:
+        georef = georef.rename(columns={'county_fips': 'fips'})
+
+    # Select only needed columns to avoid any duplicates
+    georef_cols = ['fips', 'subregion', 'region']
+    available_cols = [col for col in georef_cols if col in georef.columns]
+    georef_subset = georef[available_cols].drop_duplicates(subset=['fips'])
+    data = data.merge(georef_subset, on='fips')
 
     # Clean up columns
     cols_to_drop = [col for col in data.columns if col.endswith('ag')]
@@ -52,8 +64,9 @@ def prepare_estimation_data(start_data: pd.DataFrame,
     # Convert land capability class to integer
     data['lcc'] = pd.to_numeric(data['lcc'], errors='coerce')
 
-    # Filter by years
-    data = data[data['year'].isin(years)]
+    # Filter by years if specified
+    if years:
+        data = data[data['year'].isin(years)]
 
     # Filter by regions if specified
     if regions:
@@ -67,7 +80,7 @@ def prepare_estimation_data(start_data: pd.DataFrame,
 
 def estimate_mnlogit(data: pd.DataFrame,
                     formula: str,
-                    ref_category: Optional[int] = None) -> sm.discrete.discrete_model.MultinomialResultsWrapper:
+                    ref_category: Optional[int] = None) -> Any:
     """
     Estimate multinomial logit model.
 
@@ -86,7 +99,8 @@ def estimate_mnlogit(data: pd.DataFrame,
         Fitted model results
     """
     # Create design matrix
-    y, X = sm.formulae.api.dmatrices(formula, data, return_type='dataframe')
+    from patsy import dmatrices
+    y, X = dmatrices(formula, data, return_type='dataframe')
 
     # Fit model
     model = MNLogit(y, X)
@@ -100,7 +114,7 @@ def estimate_land_use_transitions(crop_start: pd.DataFrame,
                                  forest_start: pd.DataFrame,
                                  nr_data: pd.DataFrame,
                                  georef: pd.DataFrame,
-                                 years: List[int] = [2010, 2011, 2012]) -> Dict:
+                                 years: List[int] = None) -> Dict:
     """
     Estimate land use transition models for different starting conditions.
 
@@ -167,7 +181,7 @@ def estimate_land_use_transitions(crop_start: pd.DataFrame,
     return models
 
 
-def calculate_marginal_effects(model: sm.discrete.discrete_model.MultinomialResultsWrapper,
+def calculate_marginal_effects(model: Any,
                               data: pd.DataFrame,
                               variable: str) -> pd.DataFrame:
     """
@@ -234,15 +248,18 @@ def save_estimation_results(models: Dict,
         summaries = []
         for name, model in models.items():
             if not name.endswith('_data') and model is not None:
-                summary_df = pd.DataFrame({
-                    'model': name,
-                    'coefficient': model.params.index,
-                    'estimate': model.params.values,
-                    'std_error': model.bse.values,
-                    't_value': model.tvalues.values,
-                    'p_value': model.pvalues.values
-                })
-                summaries.append(summary_df)
+                try:
+                    summary_df = pd.DataFrame({
+                        'model': name,
+                        'coefficient': model.params.index,
+                        'estimate': model.params.values,
+                        'std_error': model.bse.values if hasattr(model, 'bse') and model.bse is not None else [np.nan] * len(model.params),
+                        't_value': model.tvalues.values if hasattr(model, 'tvalues') and model.tvalues is not None else [np.nan] * len(model.params),
+                        'p_value': model.pvalues.values if hasattr(model, 'pvalues') and model.pvalues is not None else [np.nan] * len(model.params)
+                    })
+                    summaries.append(summary_df)
+                except Exception as e:
+                    print(f"Warning: Could not save summary for {name}: {str(e)}")
 
         if summaries:
             all_summaries = pd.concat(summaries, ignore_index=True)
@@ -277,8 +294,11 @@ def load_data(georef_file: str,
     """
     # Load geographic reference
     georef = pd.read_csv(georef_file)
-    georef = georef.rename(columns={'county_fips': 'fips'})
-    georef['fips'] = georef['fips'].astype(int)
+    # Only rename county_fips to fips if fips doesn't already exist
+    if 'fips' not in georef.columns and 'county_fips' in georef.columns:
+        georef = georef.rename(columns={'county_fips': 'fips'})
+    if 'fips' in georef.columns:
+        georef['fips'] = georef['fips'].astype(int)
 
     # Load net returns data
     if nr_data_file.endswith('.rds'):
