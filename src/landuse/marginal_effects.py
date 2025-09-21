@@ -5,14 +5,14 @@ Ported from logit_ame_crop_forest.R and mfx_urban.R
 
 import pandas as pd
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 
 
-def calculate_average_marginal_effects(model: sm.discrete.discrete_model.MultinomialResultsWrapper,
+def calculate_average_marginal_effects(model: Any,
                                       data: pd.DataFrame,
                                       variables: List[str]) -> pd.DataFrame:
     """
@@ -61,7 +61,7 @@ def calculate_average_marginal_effects(model: sm.discrete.discrete_model.Multino
     return pd.DataFrame(results)
 
 
-def calculate_elasticities(model: sm.discrete.discrete_model.MultinomialResultsWrapper,
+def calculate_elasticities(model: Any,
                           data: pd.DataFrame,
                           price_vars: List[str]) -> pd.DataFrame:
     """
@@ -111,7 +111,7 @@ def calculate_elasticities(model: sm.discrete.discrete_model.MultinomialResultsW
     return pd.DataFrame(elasticities)
 
 
-def weighted_average_marginal_effects(model: sm.discrete.discrete_model.MultinomialResultsWrapper,
+def weighted_average_marginal_effects(model: Any,
                                      data: pd.DataFrame,
                                      variables: List[str],
                                      weight_col: str = 'xfact') -> pd.DataFrame:
@@ -257,7 +257,7 @@ def plot_elasticities(elasticities: pd.DataFrame,
     return fig
 
 
-def analyze_temporal_effects(models: Dict[str, sm.discrete.discrete_model.MultinomialResultsWrapper],
+def analyze_temporal_effects(models: Dict[str, Any],
                             data: Dict[str, pd.DataFrame],
                             variables: List[str]) -> pd.DataFrame:
     """
@@ -291,7 +291,7 @@ def analyze_temporal_effects(models: Dict[str, sm.discrete.discrete_model.Multin
     return pd.concat(temporal_results, ignore_index=True)
 
 
-def decompose_probability_changes(model: sm.discrete.discrete_model.MultinomialResultsWrapper,
+def decompose_probability_changes(model: Any,
                                  base_data: pd.DataFrame,
                                  scenario_data: pd.DataFrame,
                                  variables: List[str]) -> pd.DataFrame:
