@@ -119,9 +119,9 @@ def generate_land_use_transitions(start_use: str = 'crop') -> pd.DataFrame:
     - fips: County FIPS code
     - year: Year of observation
     - riad_id: Plot/observation ID within county
-    - startuse: Starting land use (1=crop, 2=pasture, 3=forest, 4=urban)
+    - startuse: Starting land use (NRI BROAD: 1=crop, 3=pasture, 5=forest, 7=urban)
     - enduse: Ending land use (same coding)
-    - lcc: Land capability class (1-8, lower is better)
+    - lcc: Land capability class (1-8, HIGHER is better quality land)
     - xfact: Expansion factor (survey weight)
     - nr.ps: Net returns for pasture at this location (optional, can be merged)
     """
@@ -130,8 +130,9 @@ def generate_land_use_transitions(start_use: str = 'crop') -> pd.DataFrame:
     georef = generate_geographic_reference()
     years = [2010, 2011, 2012]
 
-    # Land use codes
-    use_codes = {'crop': 1, 'pasture': 2, 'forest': 3, 'urban': 4}
+    # Land use codes (NRI BROAD codes)
+    # 1=Cultivated cropland, 3=Pastureland, 5=Forest land, 7=Urban
+    use_codes = {'crop': 1, 'pasture': 3, 'forest': 5, 'urban': 7}
     start_code = use_codes[start_use]
 
     data = []
@@ -142,26 +143,34 @@ def generate_land_use_transitions(start_use: str = 'crop') -> pd.DataFrame:
 
             for plot in range(n_plots):
                 # Land characteristics
+                # CORRECTED: Higher LCC = better quality land
                 lcc = np.random.choice([1, 2, 3, 4, 5, 6, 7, 8],
-                                      p=[0.1, 0.15, 0.2, 0.2, 0.15, 0.1, 0.07, 0.03])
+                                      p=[0.03, 0.07, 0.1, 0.15, 0.2, 0.2, 0.15, 0.1])
 
                 # Transition probabilities depend on land quality
+                # CORRECTED: Higher LCC = better land for agriculture
                 if start_use == 'crop':
-                    if lcc <= 3:  # Good land stays in crop
-                        probs = [0.85, 0.08, 0.05, 0.02]
-                    else:  # Poor land more likely to convert
-                        probs = [0.60, 0.20, 0.15, 0.05]
+                    if lcc >= 6:  # Good land (high LCC) stays in crop
+                        probs = [0.85, 0.08, 0.05, 0.02]  # [crop, pasture, forest, urban]
+                    else:  # Poor land (low LCC) more likely to convert to forest
+                        probs = [0.60, 0.15, 0.20, 0.05]
                 elif start_use == 'forest':
-                    if lcc <= 3:  # Good land more likely to convert
-                        probs = [0.10, 0.05, 0.80, 0.05]
-                    else:  # Poor land stays forest
-                        probs = [0.02, 0.03, 0.94, 0.01]
+                    if lcc >= 6:  # Good land (high LCC) more likely to convert to ag
+                        probs = [0.15, 0.10, 0.70, 0.05]  # Some conversion to crop/pasture
+                    else:  # Poor land (low LCC) stays forest
+                        probs = [0.02, 0.03, 0.94, 0.01]  # Forest persists on poor land
                 elif start_use == 'pasture':
-                    probs = [0.10, 0.75, 0.10, 0.05]
+                    if lcc >= 7:  # Very good land might convert to crop
+                        probs = [0.20, 0.65, 0.10, 0.05]
+                    elif lcc <= 3:  # Poor land might revert to forest
+                        probs = [0.05, 0.60, 0.30, 0.05]
+                    else:  # Medium quality land
+                        probs = [0.10, 0.75, 0.10, 0.05]
                 else:  # urban
                     probs = [0.01, 0.01, 0.01, 0.97]  # Urban rarely converts
 
-                enduse = np.random.choice([1, 2, 3, 4], p=probs)
+                # Use NRI BROAD codes for end use
+                enduse = np.random.choice([1, 3, 5, 7], p=probs)
 
                 # Survey weights (expansion factors)
                 xfact = np.random.exponential(100) + 10
@@ -346,9 +355,9 @@ def save_test_data(output_dir: str = "test_data"):
                 "fips": "integer, county FIPS code",
                 "year": "integer, year of observation",
                 "riad_id": "string, unique plot identifier",
-                "startuse": "integer, starting land use (1=crop, 2=pasture, 3=forest, 4=urban)",
+                "startuse": "integer, starting land use (NRI BROAD: 1=crop, 3=pasture, 5=forest, 7=urban)",
                 "enduse": "integer, ending land use (same coding)",
-                "lcc": "integer, land capability class (1-8)",
+                "lcc": "integer, land capability class (1-8, higher=better quality)",
                 "xfact": "float, expansion factor (survey weight)"
             }
         },
