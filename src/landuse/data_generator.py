@@ -131,8 +131,8 @@ def generate_land_use_transitions(start_use: str = 'crop') -> pd.DataFrame:
     years = [2010, 2011, 2012]
 
     # Land use codes (NRI BROAD codes)
-    # 1=Cultivated cropland, 3=Pastureland, 5=Forest land, 7=Urban
-    use_codes = {'crop': 1, 'pasture': 3, 'forest': 5, 'urban': 7}
+    # 1=Cultivated cropland, 3=Pastureland, 5=Forest land, 7=Urban, 12=CRP
+    use_codes = {'crop': 1, 'pasture': 3, 'forest': 5, 'urban': 7, 'crp': 12}
     start_code = use_codes[start_use]
 
     data = []

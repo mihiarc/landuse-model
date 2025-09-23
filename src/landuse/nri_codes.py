@@ -27,7 +27,8 @@ MODELING_CODES = {
     1: "Crop",        # Cultivated cropland
     3: "Pasture",     # Pastureland
     5: "Forest",      # Forest land
-    7: "Urban"        # Urban and built-up land
+    7: "Urban",       # Urban and built-up land
+    12: "CRP"         # Conservation Reserve Program
 }
 
 # Reverse mapping for easy lookup
@@ -39,7 +40,9 @@ CODE_TO_NAME = {
     "forest": 5,
     "forestland": 5,
     "urban": 7,
-    "built-up": 7
+    "built-up": 7,
+    "crp": 12,
+    "conservation": 12
 }
 
 def get_land_use_name(code: int) -> str:
