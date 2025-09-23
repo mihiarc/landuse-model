@@ -1,0 +1,21 @@
+{
+  "crp_transitions": {
+    "description": "Land use transitions including CRP enrollment",
+    "required_columns": {
+      "fips": "County FIPS code",
+      "year": "Year of observation",
+      "startuse": "Starting land use (NRI BROAD codes)",
+      "enduse": "Ending land use (12 = CRP)",
+      "lcc": "Land Capability Class (1-8, higher=better)",
+      "in_crp": "Binary indicator for CRP enrollment",
+      "crp_payment": "CRP payment rate ($/acre) if enrolled",
+      "is_marginal": "Binary indicator for marginal land (LCC 3-5)",
+      "is_cropland": "Binary indicator for starting cropland"
+    }
+  },
+  "key_patterns": {
+    "optimal_lcc": "LCC 3-5 shows highest CRP enrollment",
+    "source": "Most CRP comes from cropland",
+    "persistence": "CRP contracts typically last 10-15 years"
+  }
+}

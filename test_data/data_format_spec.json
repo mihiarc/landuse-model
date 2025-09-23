@@ -1,0 +1,68 @@
+{
+  "geographic_reference": {
+    "file": "forest_georef.csv",
+    "required_columns": {
+      "fips": "integer, 5-digit county FIPS code",
+      "county_fips": "alternative name for fips (optional)",
+      "subregion": "string, subregion code",
+      "region": "string, major region code (NO, SO, WE, MW)"
+    }
+  },
+  "net_returns": {
+    "file": "nr_clean_5year_normals.csv",
+    "required_columns": {
+      "fips": "integer, county FIPS code",
+      "year": "integer, year of observation",
+      "nr_cr": "float, crop net returns ($/acre)",
+      "nr_ps": "float, pasture net returns ($/acre)",
+      "nr_fr": "float, forest net returns ($/acre)",
+      "nr_ur": "float, urban net returns ($/acre)"
+    },
+    "optional_columns": {
+      "nrmean_*": "5-year mean net returns",
+      "nrchange_*": "change in net returns"
+    }
+  },
+  "land_transitions": {
+    "files": [
+      "start_crop.csv",
+      "start_pasture.csv",
+      "start_forest.csv"
+    ],
+    "required_columns": {
+      "fips": "integer, county FIPS code",
+      "year": "integer, year of observation",
+      "riad_id": "string, unique plot identifier",
+      "startuse": "integer, starting land use (1=crop, 2=pasture, 3=forest, 4=urban)",
+      "enduse": "integer, ending land use (same coding)",
+      "lcc": "integer, land capability class (1-8)",
+      "xfact": "float, expansion factor (survey weight)"
+    }
+  },
+  "climate_impacts": {
+    "directory": "cc_impacts/",
+    "files": {
+      "crop_climate_change_impact.csv": {
+        "GEOID": "string, county GEOID",
+        "nr": "float, current net returns",
+        "impact": "float, climate-induced change"
+      },
+      "forest_climate_change_impact.csv": {
+        "GEOID": "string, county GEOID",
+        "nracre": "float, current net returns per acre",
+        "impact": "float, climate-induced change"
+      },
+      "urban_climate_change_impact.csv": {
+        "fips": "integer, county FIPS",
+        "urnr": "float, urban net returns",
+        "impact": "float, climate-induced change"
+      }
+    }
+  },
+  "notes": {
+    "data_types": "FIPS codes should be integers but may need zero-padding for display",
+    "missing_values": "Handle NaN values before estimation",
+    "weights": "xfact is used for weighted estimation",
+    "time_lag": "Net returns data year + 2 = transition year (lagged relationship)"
+  }
+}

@@ -1,0 +1,33 @@
+======================================================================
+CRP ENROLLMENT MODELING REPORT
+======================================================================
+
+MODEL ESTIMATION RESULTS
+----------------------------------------
+
+Model: main_model
+  Observations: 6735
+  Log-likelihood: -2782.14
+  Pseudo R-squared: 0.0494
+  Key Coefficients:
+    LCC: -0.0774 (p=0.0001)
+    → Negative: Lower quality land more likely to enter CRP
+    Cropland: -1.1267
+
+======================================================================
+ENVIRONMENTAL IMPACTS
+----------------------------------------
+Total CRP Enrollment: 151,300 acres
+
+Enrollment by Land Capability Class:
+  LCC 1: 92 parcels
+  LCC 2: 141 parcels
+  LCC 3: 237 parcels
+  LCC 4: 299 parcels
+  LCC 5: 251 parcels
+  LCC 6: 190 parcels
+  LCC 7: 115 parcels
+  LCC 8: 63 parcels
+
+Soil Erosion Reduction: 756,500 tons/year
+Carbon Sequestration: 226,950 tons CO2/year

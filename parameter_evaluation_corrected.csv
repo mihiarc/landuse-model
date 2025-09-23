@@ -1,0 +1,37 @@
+Model,Start,Region,End Use,Coefficient,Sign,Expected,Consistent
+cropstart_all,Crop,All Regions,Outcome 0,0.2657512569861687,+,Weak/Mixed,✓
+cropstart_all,Crop,All Regions,Crop,0.31863146580819574,+,Positive (prefers good/high LCC land),✓
+cropstart_all,Crop,All Regions,Pasture,0.33434894035221424,+,Mixed/Moderate positive,✓
+cropstart_east,Crop,East,Outcome 0,0.2577391494308988,+,Weak/Mixed,✓
+cropstart_east,Crop,East,Crop,0.30603366013534744,+,Positive (prefers good/high LCC land),✓
+cropstart_east,Crop,East,Pasture,0.2976690671165586,+,Mixed/Moderate positive,✓
+cropstart_south,Crop,South,Outcome 0,0.23795548952588222,+,Weak/Mixed,✓
+cropstart_south,Crop,South,Crop,0.28517323555240975,+,Positive (prefers good/high LCC land),✓
+cropstart_south,Crop,South,Pasture,0.3093073830393223,+,Mixed/Moderate positive,✓
+cropstart_north,Crop,North,Outcome 0,0.27545631547456717,+,Weak/Mixed,✓
+cropstart_north,Crop,North,Crop,0.33351533488218493,+,Positive (prefers good/high LCC land),✓
+cropstart_north,Crop,North,Pasture,0.28623606463087237,+,Mixed/Moderate positive,✓
+pasturestart_all,Pasture,All Regions,Outcome 0,0.0010197796448241148,+,Weak/Mixed,✓
+pasturestart_all,Pasture,All Regions,Crop,0.02994988373665628,+,Positive (prefers good/high LCC land),✓
+pasturestart_all,Pasture,All Regions,Pasture,0.0709417689423629,+,Mixed/Moderate positive,✓
+pasturestart_east,Pasture,East,Outcome 0,-0.033719157067188685,-,Weak/Mixed,✓
+pasturestart_east,Pasture,East,Crop,-0.0049801345616777015,-,Positive (prefers good/high LCC land),✗
+pasturestart_east,Pasture,East,Pasture,0.026325778929699988,+,Mixed/Moderate positive,✓
+pasturestart_south,Pasture,South,Outcome 0,-0.05417303214247781,-,Weak/Mixed,✓
+pasturestart_south,Pasture,South,Crop,-0.012568878244377083,-,Positive (prefers good/high LCC land),✗
+pasturestart_south,Pasture,South,Pasture,0.0016119056264355348,+,Mixed/Moderate positive,✓
+pasturestart_north,Pasture,North,Outcome 0,-0.012854898880895714,-,Weak/Mixed,✓
+pasturestart_north,Pasture,North,Crop,0.004488395286948834,+,Positive (prefers good/high LCC land),✓
+pasturestart_north,Pasture,North,Pasture,0.04846605296600976,+,Mixed/Moderate positive,✓
+foreststart_all,Forest,All Regions,Outcome 0,0.209593440626089,+,Weak/Mixed,✓
+foreststart_all,Forest,All Regions,Crop,0.40398372369849633,+,Positive (prefers good/high LCC land),✓
+foreststart_all,Forest,All Regions,Pasture,0.14313851906270647,+,Mixed/Moderate positive,✓
+foreststart_east,Forest,East,Outcome 0,0.12332951427516194,+,Weak/Mixed,✓
+foreststart_east,Forest,East,Crop,0.3192262989251203,+,Positive (prefers good/high LCC land),✓
+foreststart_east,Forest,East,Pasture,0.0655365022012732,+,Mixed/Moderate positive,✓
+foreststart_south,Forest,South,Outcome 0,0.2668626516465423,+,Weak/Mixed,✓
+foreststart_south,Forest,South,Crop,0.4656206071408074,+,Positive (prefers good/high LCC land),✓
+foreststart_south,Forest,South,Pasture,0.0018864003092985814,+,Mixed/Moderate positive,✓
+foreststart_north,Forest,North,Outcome 0,0.032855731719160265,+,Weak/Mixed,✓
+foreststart_north,Forest,North,Crop,0.22314776259914307,+,Positive (prefers good/high LCC land),✓
+foreststart_north,Forest,North,Pasture,0.09228289783799687,+,Mixed/Moderate positive,✓

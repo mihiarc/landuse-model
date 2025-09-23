@@ -1,0 +1,80 @@
+================================================================================
+CRP ENROLLMENT SIMULATION REPORT
+Using Real NRI Data with Land Capability Classes
+================================================================================
+
+OVERALL SUMMARY
+----------------------------------------
+Total land parcels analyzed: 8,709
+Total acres represented: 929,789
+LCC range: 1 - 8
+
+SCENARIO RESULTS
+----------------------------------------
+
+BASELINE SCENARIO:
+  Enrollment rate: 12.76%
+  CRP parcels: 1,111
+  CRP acres: 119,553
+  Average LCC of CRP land: 4.30
+  Sources:
+    From Crop: 64.9%
+    From Code 2: 1.7%
+    From Pasture: 33.4%
+
+HIGH_PAYMENT SCENARIO:
+  Enrollment rate: 22.47%
+  CRP parcels: 1,957
+  CRP acres: 212,444
+  Average LCC of CRP land: 4.27
+  Sources:
+    From Crop: 63.9%
+    From Code 2: 1.8%
+    From Pasture: 34.3%
+
+CONSERVATION_FOCUS SCENARIO:
+  Enrollment rate: 18.99%
+  CRP parcels: 1,654
+  CRP acres: 176,977
+  Average LCC of CRP land: 4.19
+  Sources:
+    From Crop: 77.0%
+    From Code 2: 1.1%
+    From Pasture: 21.9%
+
+================================================================================
+ENVIRONMENTAL IMPACTS
+----------------------------------------
+
+BASELINE:
+  Erosion reduction: 597,765 tons/year
+  Carbon sequestration: 179,329 tons CO2/year
+
+HIGH_PAYMENT:
+  Erosion reduction: 1,062,221 tons/year
+  Carbon sequestration: 318,666 tons CO2/year
+
+CONSERVATION_FOCUS:
+  Erosion reduction: 884,886 tons/year
+  Carbon sequestration: 265,466 tons CO2/year
+
+================================================================================
+LAND CAPABILITY CLASS ANALYSIS
+----------------------------------------
+
+CRP Enrollment by LCC (Baseline):
+  LCC 1: 13.0 parcels (1.5% of LCC 1), 2,305 acres
+  LCC 2: 47.0 parcels (3.7% of LCC 2), 4,621 acres
+  LCC 3: 221.0 parcels (12.4% of LCC 3), 22,770 acres
+  LCC 4: 345.0 parcels (18.9% of LCC 4), 38,377 acres
+  LCC 5: 322.0 parcels (24.4% of LCC 5), 33,759 acres
+  LCC 6: 128.0 parcels (15.9% of LCC 6), 13,973 acres
+  LCC 7: 30.0 parcels (5.1% of LCC 7), 3,417 acres
+  LCC 8: 5.0 parcels (2.2% of LCC 8), 332 acres
+
+================================================================================
+KEY FINDINGS
+----------------------------------------
+1. Optimal LCC for CRP enrollment: 5 (24.4% rate)
+2. Primary CRP source: Crop (64.9% of CRP)
+3. High payment scenario increases CRP by 77.7%
