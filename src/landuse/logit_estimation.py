@@ -15,7 +15,8 @@ def prepare_estimation_data(start_data: pd.DataFrame,
                            nr_data: pd.DataFrame,
                            georef: pd.DataFrame,
                            years: List[int],
-                           regions: Optional[List[str]] = None) -> pd.DataFrame:
+                           regions: Optional[List[str]] = None,
+                           use_net_returns: bool = False) -> pd.DataFrame:
     """
     Prepare data for logit estimation.
 
@@ -24,25 +25,30 @@ def prepare_estimation_data(start_data: pd.DataFrame,
     start_data : pd.DataFrame
         Starting land use data
     nr_data : pd.DataFrame
-        Net returns data
+        Net returns data (optional, only used if use_net_returns=True)
     georef : pd.DataFrame
         Geographic reference data with regions
     years : List[int]
         Years to include in estimation
     regions : List[str], optional
         Regions to filter
+    use_net_returns : bool, optional
+        Whether to include net returns in the model (default: False)
 
     Returns:
     --------
     pd.DataFrame
         Prepared estimation data
     """
-    # Apply lag to net returns
-    nr_data = nr_data.copy()
-    nr_data['year'] = nr_data['year'] + 2
+    data = start_data.copy()
 
-    # Merge data
-    data = start_data.merge(nr_data, on=['fips', 'year'])
+    # Only merge net returns if explicitly requested
+    if use_net_returns and nr_data is not None:
+        # Apply lag to net returns
+        nr_data_lagged = nr_data.copy()
+        nr_data_lagged['year'] = nr_data_lagged['year'] + 2
+        # Merge data
+        data = data.merge(nr_data_lagged, on=['fips', 'year'], how='left')
 
     # Handle georef columns - it may have both 'fips' and 'county_fips'
     # Drop county_fips if both exist to avoid confusion
@@ -64,6 +70,12 @@ def prepare_estimation_data(start_data: pd.DataFrame,
     # Convert land capability class to integer
     data['lcc'] = pd.to_numeric(data['lcc'], errors='coerce')
 
+    # Create categorical variables for LCC (for better model fit)
+    # LCC 1-2 are best for agriculture, 3-4 moderate, 5-8 poor
+    data['lcc_cat'] = pd.cut(data['lcc'],
+                             bins=[0, 2, 4, 8],
+                             labels=['good', 'moderate', 'poor'])
+
     # Filter by years if specified
     if years:
         data = data[data['year'].isin(years)]
@@ -73,7 +85,8 @@ def prepare_estimation_data(start_data: pd.DataFrame,
         data = data[data['region'].isin(regions)]
 
     # Calculate weights
-    data['weight'] = (data['xfact'] / data['xfact'].sum()) * len(data)
+    if 'xfact' in data.columns:
+        data['weight'] = (data['xfact'] / data['xfact'].sum()) * len(data)
 
     return data
 
@@ -114,7 +127,8 @@ def estimate_land_use_transitions(crop_start: pd.DataFrame,
                                  forest_start: pd.DataFrame,
                                  nr_data: pd.DataFrame,
                                  georef: pd.DataFrame,
-                                 years: List[int] = None) -> Dict:
+                                 years: List[int] = None,
+                                 use_net_returns: bool = False) -> Dict:
     """
     Estimate land use transition models for different starting conditions.
 
@@ -127,11 +141,13 @@ def estimate_land_use_transitions(crop_start: pd.DataFrame,
     forest_start : pd.DataFrame
         Data for land starting in forest use
     nr_data : pd.DataFrame
-        Net returns data
+        Net returns data (optional, only used if use_net_returns=True)
     georef : pd.DataFrame
         Geographic reference data
     years : List[int]
         Years to include
+    use_net_returns : bool, optional
+        Whether to include net returns in the model (default: False, uses only LCC)
 
     Returns:
     --------
@@ -156,18 +172,31 @@ def estimate_land_use_transitions(crop_start: pd.DataFrame,
 
     for start_name, start_data in starting_conditions.items():
         for region_name, region_filter in regions.items():
-            print(f"Estimating model for {start_name} start in {region_name} region...")
+            print(f"Estimating LCC-only model for {start_name} start in {region_name} region...")
 
             # Prepare data
             est_data = prepare_estimation_data(
-                start_data, nr_data, georef, years, region_filter
+                start_data, nr_data, georef, years, region_filter, use_net_returns
             )
 
             # Store prepared data
             models[f'{start_name}start_{region_name}_data'] = est_data
 
-            # Define formula based on available variables
-            formula = 'enduse ~ lcc + nr_cr + nr_ps + nr_fr + nr_ur'
+            # Define formula based on whether to use net returns
+            if use_net_returns:
+                # Check if net returns columns are available
+                nr_cols = ['nr_cr', 'nr_ps', 'nr_fr', 'nr_ur']
+                available_nr_cols = [col for col in nr_cols if col in est_data.columns]
+                if available_nr_cols:
+                    formula = f'enduse ~ lcc + {" + ".join(available_nr_cols)}'
+                else:
+                    print(f"  Warning: Net returns requested but not available, using LCC only")
+                    formula = 'enduse ~ lcc'
+            else:
+                # Simplified model using only LCC
+                formula = 'enduse ~ lcc'
+
+            print(f"  Using formula: {formula}")
 
             try:
                 # Estimate model
@@ -330,7 +359,8 @@ def main(georef_file: str,
          start_crop_file: str,
          start_pasture_file: str,
          start_forest_file: str,
-         output_dir: str):
+         output_dir: str,
+         use_net_returns: bool = False):
     """
     Main function to run logit estimation.
 
@@ -339,7 +369,7 @@ def main(georef_file: str,
     georef_file : str
         Path to geographic reference file
     nr_data_file : str
-        Path to net returns data
+        Path to net returns data (optional, only used if use_net_returns=True)
     start_crop_file : str
         Path to crop start data
     start_pasture_file : str
@@ -348,15 +378,19 @@ def main(georef_file: str,
         Path to forest start data
     output_dir : str
         Output directory
+    use_net_returns : bool, optional
+        Whether to include net returns in the model (default: False, uses only LCC)
     """
     print("Loading data files...")
     georef, nr_data, start_crop, start_pasture, start_forest = load_data(
         georef_file, nr_data_file, start_crop_file, start_pasture_file, start_forest_file
     )
 
-    print("Estimating land use transition models...")
+    model_type = "LCC-only" if not use_net_returns else "LCC with net returns"
+    print(f"Estimating land use transition models ({model_type})...")
     models = estimate_land_use_transitions(
-        start_crop, start_pasture, start_forest, nr_data, georef
+        start_crop, start_pasture, start_forest, nr_data, georef,
+        use_net_returns=use_net_returns
     )
 
     print("Saving results...")
@@ -365,7 +399,7 @@ def main(georef_file: str,
     print(f"Estimation complete. Results saved to {output_dir}")
 
     # Print summary of models
-    print("\nModel Summary:")
+    print(f"\nModel Summary ({model_type}):")
     for name, model in models.items():
         if not name.endswith('_data') and model is not None:
             print(f"\n{name}:")

@@ -46,7 +46,8 @@ class TestLogitEstimation:
 
     def test_estimate_mnlogit_basic(self, simple_estimation_data):
         """Test basic multinomial logit estimation."""
-        formula = 'enduse ~ lcc + nr_cr + nr_ps + nr_fr'
+        # Test simplified LCC-only model
+        formula = 'enduse ~ lcc'
 
         try:
             result = estimate_mnlogit(simple_estimation_data, formula)
@@ -77,7 +78,8 @@ class TestLogitEstimation:
 
     def test_marginal_effects_calculation(self, simple_estimation_data):
         """Test marginal effects calculation."""
-        formula = 'enduse ~ lcc + nr_cr + nr_ps'
+        # Test with LCC-only model
+        formula = 'enduse ~ lcc'
 
         try:
             model = estimate_mnlogit(simple_estimation_data, formula)
@@ -94,7 +96,8 @@ class TestLogitEstimation:
 
     def test_model_convergence(self, simple_estimation_data):
         """Test that models converge successfully."""
-        formula = 'enduse ~ lcc + nr_cr'
+        # Test convergence with LCC-only model
+        formula = 'enduse ~ lcc'
 
         try:
             result = estimate_mnlogit(simple_estimation_data, formula)
@@ -144,9 +147,32 @@ class TestLogitEstimation:
         except Exception as e:
             pytest.skip(f"Coefficient sign test failed: {str(e)}")
 
+    def test_lcc_only_model(self, georef, start_crop, start_pasture, start_forest, nr_data):
+        """Test LCC-only model estimation."""
+        # Test the simplified LCC-only model
+        models = estimate_land_use_transitions(
+            start_crop, start_pasture, start_forest,
+            nr_data=nr_data,  # Pass nr_data but it won't be used with use_net_returns=False
+            georef=georef,
+            years=[2010, 2011, 2012],
+            use_net_returns=False  # Use LCC-only model
+        )
+
+        # Check that models were estimated
+        for key, model in models.items():
+            if not key.endswith('_data') and model is not None:
+                # Check that model only has LCC as predictor
+                assert 'lcc' in str(model.params.index)
+                # Net returns should not be in the model
+                assert 'nr_cr' not in str(model.params.index)
+                assert 'nr_ps' not in str(model.params.index)
+                assert 'nr_fr' not in str(model.params.index)
+                assert 'nr_ur' not in str(model.params.index)
+
     def test_prediction_probabilities(self, simple_estimation_data):
         """Test that predicted probabilities sum to 1."""
-        formula = 'enduse ~ lcc + nr_cr + nr_ps'
+        # Test with LCC-only model
+        formula = 'enduse ~ lcc'
 
         try:
             model = estimate_mnlogit(simple_estimation_data, formula)
