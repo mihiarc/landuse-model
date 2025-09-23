@@ -1,0 +1,39 @@
+================================================================================
+CRP TREE PLANTING PRACTICES ANALYSIS REPORT
+================================================================================
+
+EXECUTIVE SUMMARY
+----------------------------------------
+Total CRP acres analyzed: 119,553
+Tree-based practice acres: 39,521 (33.1%)
+Non-tree practice acres: 80,032 (66.9%)
+
+CARBON SEQUESTRATION
+----------------------------------------
+Total 10-year carbon sequestration: 2,387,910 tons CO2
+Tree practices contribution: 1,656,475 tons (69.4%)
+Average carbon rate:
+  Tree practices: 3.30 tons/acre/year
+  Non-tree practices: 0.91 tons/acre/year
+
+TOP PRACTICES BY ENROLLMENT
+----------------------------------------
+1. Permanent Native Grasses: 38,315 acres
+2. Permanent Introduced Grasses: 23,768 acres
+3. Tree Planting: 18,640 acres
+4. Vegetative Cover - Grass: 14,549 acres
+5. Riparian Forest Buffer: 9,100 acres
+
+ECOSYSTEM SERVICES COMPARISON
+----------------------------------------
+Average ecosystem service score:
+  Tree-based practices: 65.7/100
+  Non-tree practices: 63.1/100
+
+RECOMMENDATIONS
+----------------------------------------
+1. Increase tree-based practices on LCC 1-3 land for maximum carbon benefits
+2. Prioritize riparian forest buffers for water quality improvements
+3. Use windbreaks on LCC 4-5 land for balanced benefits
+4. Maintain grass practices on LCC 6-8 for cost-effectiveness
+5. Consider 30-40% tree practices for optimal ecosystem services
