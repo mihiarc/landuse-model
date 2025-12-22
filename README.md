@@ -1,76 +1,87 @@
-# Land Use Modeling
+# Land Use Change Model
 
-Python package for analyzing land use transitions, climate impacts, and policy effects using discrete choice models.
+Discrete choice model for analyzing land use transitions across the contiguous United States, based on Mihiar (2018) and Mihiar & Lewis (2023).
 
 ## Overview
 
-This package provides tools for:
-- Estimating multinomial logit models for land use transitions
-- Calculating marginal effects and elasticities
-- Analyzing climate change impacts on land use decisions
-- Exploring spatial and temporal patterns in land use data
-- Visualizing results through maps and charts
+This package implements the econometric land use change model that estimates transition probabilities between major land use categories (cropland, pasture, forest, urban, CRP) using:
+- Multinomial/nested logit discrete choice models
+- National Resources Inventory (NRI) plot-level data
+- Land Capability Class (LCC) as primary land quality measure
+- Net returns from companion rent estimation models
+
+## Related Repositories
+
+This model is part of a multi-repo system:
+
+| Repository | Purpose |
+|------------|---------|
+| **landuse-modeling** (this repo) | Land use transition discrete choice model |
+| [ag-rents](../ag-rents) | Agricultural land rent estimation (cropland, pasture) |
+| [urban-rents](../urban-rents) | Urban/developed land rent estimation |
+| [forest-rents](../forest-rents) | Forest land rent estimation |
+
+The rent models provide county-level net returns that serve as inputs to this land use change model.
 
 ## Installation
 
-### Using uv (recommended)
-
 ```bash
-# Create virtual environment and install in development mode
+# Clone repository
+git clone <repository-url>
+cd landuse-modeling
+
+# Create virtual environment and install
 uv venv
-uv pip install -e .
-
-# Install with development dependencies
 uv pip install -e ".[dev]"
-```
-
-### Using pip
-
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install in development mode
-pip install -e .
-
-# Install with development dependencies
-pip install -e ".[dev]"
 ```
 
 ## Quick Start
 
-1. Create a configuration file:
 ```bash
-uv run python -m landuse.main create-config
-```
+# Generate test data
+uv run python -m landuse.data_generator
 
-2. Edit the configuration file with your data paths
-
-3. Run the full analysis pipeline:
-```bash
+# Run estimation
 uv run python -m landuse.main full config.json
+
+# Run tests
+uv run pytest tests/
 ```
 
 ## Project Structure
 
 ```
 landuse-modeling/
-├── src/
-│   └── landuse/
-│       ├── __init__.py
-│       ├── main.py              # Main entry point and CLI
-│       ├── climate_impact.py    # Climate change impact analysis
-│       ├── logit_estimation.py  # Discrete choice model estimation
-│       ├── marginal_effects.py  # Marginal effects and elasticities
-│       └── data_exploration.py  # Data exploration utilities
-├── tests/                        # Test suite
-├── data/                         # Data directory (not in git)
-├── archive/                      # Original R scripts
-├── pyproject.toml               # Project configuration
-└── README.md
+├── src/landuse/              # Core Python package
+│   ├── logit_estimation.py   # Discrete choice model estimation
+│   ├── climate_impact.py     # Climate scenario analysis
+│   ├── marginal_effects.py   # Elasticity calculations
+│   ├── crp_enrollment.py     # CRP-specific modeling
+│   ├── data_converter.py     # NRI data processing
+│   └── main.py               # CLI entry point
+├── tests/                    # Test suite
+├── docs/                     # Technical documentation
+├── scripts/                  # Utility and analysis scripts
+├── data/                     # Test and sample data
+├── reference/                # NRI layout and specs
+├── archive/                  # Original R scripts
+└── examples/                 # Usage examples
 ```
 
-## Original R Scripts
+## Theoretical Foundation
 
-This package is a Python port of R scripts for land use modeling. The original R scripts are preserved in the `archive/` directory.
+See [CLAUDE.md](CLAUDE.md) for detailed documentation on:
+- Model architecture and econometric specification
+- Data sources and variables
+- Key findings from original research
+- Planned updates and extensions
+
+## Key References
+
+- Mihiar, C. (2018). "An Econometric Analysis of the Impact of Climate Change on Forest Land Value and Broad Land-use Change." PhD Dissertation, Oregon State University.
+- Mihiar, C.M., and D.J. Lewis (2023). "An empirical analysis of U.S. land-use change under multiple climate change scenarios." Journal of the Agricultural and Applied Economics Association, 2: 597-611.
+- Lubowski, R.N., A.J. Plantinga, and R.N. Stavins (2006). "Land-use change and carbon sinks." Journal of Environmental Economics and Management, 51(2): 135-152.
+
+## License
+
+MIT

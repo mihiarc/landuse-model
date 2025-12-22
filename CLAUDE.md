@@ -7,7 +7,7 @@ This project replicates and extends the econometric land use change modeling fra
 ### Source Literature
 
 **Primary References:**
-- Mihiar, C. (2018). "Three essays on the economics of climate change, land use and carbon sequestration." PhD Dissertation, Oregon State University. [ScholarsArchive@OSU](https://ir.library.oregonstate.edu/concern/graduate_thesis_or_dissertations/d791sk216)
+- Mihiar, C. (2018). "An Econometric Analysis of the Impact of Climate Change on Forest Land Value and Broad Land-use Change." PhD Dissertation, Oregon State University. [ScholarsArchive@OSU](https://ir.library.oregonstate.edu/concern/graduate_thesis_or_dissertations/kp78gn36h)
 - Mihiar, C.M., and D.J. Lewis (2023). "An empirical analysis of U.S. land-use change under multiple climate change scenarios." Journal of the Agricultural and Applied Economics Association, 2: 597-611. [DOI: 10.1002/jaa2.82](https://onlinelibrary.wiley.com/doi/10.1002/jaa2.82)
 - Mihiar, C., and D.J. Lewis (2021). "Climate, adaptation, and the value of forestland: A national Ricardian analysis of the United States." Land Economics, 97(4): 911-932.
 
