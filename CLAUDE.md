@@ -85,11 +85,14 @@ Typical nesting structure:
 
 ### Model by Starting Use
 
-Four separate models are estimated:
-1. **Crop Start**: Land beginning in cropland
-2. **Pasture Start**: Land beginning in pasture
-3. **Forest Start**: Land beginning in forest
-4. **CRP Start**: Land enrolled in conservation programs
+Five separate models are estimated (6-category version):
+1. **Irrigated Crop Start (CR_IRR)**: Land beginning in irrigated cropland
+2. **Dryland Crop Start (CR_DRY)**: Land beginning in non-irrigated cropland
+3. **Pasture Start (PS)**: Land beginning in pasture
+4. **Range Start (RG)**: Land beginning in rangeland
+5. **Forest Start (FR)**: Land beginning in forest
+
+**Important: No model is estimated for land starting in urban use.** We assume that once land is converted to urban/developed use, it never reverts to agricultural or natural land uses. This is a standard assumption in land use economics reflecting the high cost and practical irreversibility of urban development.
 
 ## Key Variables
 
