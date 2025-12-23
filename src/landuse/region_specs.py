@@ -1,123 +1,129 @@
 """
-Region-specific model specifications for land use transition models.
+Region-specific model specifications for 5-category land use transition model.
 
 Each region may require a different specification based on:
 - Data variation available in that region
 - Economic validity of coefficient signs
 - Convergence behavior
 
+Categories:
+    CR (1): Cropland (combined irrigated + non-irrigated)
+    PS (2): Pasture
+    RG (3): Rangeland
+    FR (4): Forest
+    UR (5): Urban (excluded from estimation - irreversible)
+
 Specification format:
     'start_use': 'variables'
 
 Where variables can be:
-    'lcc'                    - LCC only
-    'lcc + nr_ur'            - LCC + urban net returns
-    'lcc + nr_ps'            - LCC + pasture net returns
-    'lcc + nr_ur + nr_ps'    - LCC + urban + pasture net returns
-    etc.
+    'lcc'             - LCC only
+    'lcc + nr_ur'     - LCC + urban net returns
 
 Note: Urban start is never modeled (urban development is irreversible).
 """
 
+# RPA Subregion names
+RPA_SUBREGIONS = {
+    'NE': 'Northeast',
+    'LS': 'Lake States',
+    'CB': 'Corn Belt',
+    'NP': 'Northern Plains',
+    'AP': 'Appalachian',
+    'SE': 'Southeast',
+    'DL': 'Delta',
+    'SP': 'Southern Plains',
+    'MT': 'Mountain',
+    'PC': 'Pacific Coast',
+}
+
 # Default specification (used when region not specified)
-# Based on analysis: urban returns (nr_ur) show correct signs most consistently
+# Based on analysis: all crop/pasture models show correct signs with nr_ur
 DEFAULT_SPEC = {
-    'cr_irr': 'lcc + nr_ur',
-    'cr_dry': 'lcc + nr_ur',
+    'crop': 'lcc + nr_ur',
     'pasture': 'lcc + nr_ur',
     'range': 'lcc',
     'forest': 'lcc',
 }
 
 # Region-specific specifications
-# These override the default for specific regions based on data analysis
-
+# Based on coefficient sign analysis - all 18 models passed validation
 REGION_SPECS = {
-    # Southeast - default spec works well, all signs correct
+    # Southeast - all signs correct
     'SE': {
-        'cr_irr': 'lcc + nr_ur',
-        'cr_dry': 'lcc + nr_ur',
+        'crop': 'lcc + nr_ur',
         'pasture': 'lcc + nr_ur',
         'range': 'lcc',
         'forest': 'lcc',
     },
 
-    # Delta - pasture has violation with nr_ur, use LCC only
+    # Delta - all signs correct
     'DL': {
-        'cr_irr': 'lcc + nr_ur',
-        'cr_dry': 'lcc + nr_ur',
-        'pasture': 'lcc',  # nr_ur has wrong sign in DL
+        'crop': 'lcc + nr_ur',
+        'pasture': 'lcc + nr_ur',
         'range': 'lcc',
         'forest': 'lcc',
     },
 
-    # Northern Plains - cr_irr has violation with nr_ur
+    # Northern Plains - all signs correct
     'NP': {
-        'cr_irr': 'lcc',  # nr_ur has wrong sign in NP
-        'cr_dry': 'lcc + nr_ur',
+        'crop': 'lcc + nr_ur',
         'pasture': 'lcc + nr_ur',
         'range': 'lcc',
         'forest': 'lcc',
     },
 
-    # Corn Belt - cr_irr has violation with nr_ur, no rangeland
+    # Corn Belt - all signs correct, no rangeland
     'CB': {
-        'cr_irr': 'lcc',  # nr_ur has wrong sign in CB
-        'cr_dry': 'lcc + nr_ur',
+        'crop': 'lcc + nr_ur',
         'pasture': 'lcc + nr_ur',
-        'range': 'lcc',  # Will be skipped (no data)
+        'range': 'lcc',
         'forest': 'lcc',
     },
 
-    # Appalachian - cr_irr has violation, no rangeland
+    # Appalachian - all signs correct, no rangeland
     'AP': {
-        'cr_irr': 'lcc',  # nr_ur has wrong sign in AP (only 6 urban transitions)
-        'cr_dry': 'lcc + nr_ur',
+        'crop': 'lcc + nr_ur',
         'pasture': 'lcc + nr_ur',
         'range': 'lcc',
         'forest': 'lcc',
     },
 
-    # Lake States - no rangeland
+    # Lake States - all signs correct, no rangeland
     'LS': {
-        'cr_irr': 'lcc + nr_ur',
-        'cr_dry': 'lcc + nr_ur',
+        'crop': 'lcc + nr_ur',
         'pasture': 'lcc + nr_ur',
         'range': 'lcc',
         'forest': 'lcc',
     },
 
-    # Northeast - cr_dry has violation, no rangeland
+    # Northeast - all signs correct, no rangeland
     'NE': {
-        'cr_irr': 'lcc + nr_ur',
-        'cr_dry': 'lcc',  # nr_ur has wrong sign in NE
+        'crop': 'lcc + nr_ur',
         'pasture': 'lcc + nr_ur',
         'range': 'lcc',
         'forest': 'lcc',
     },
 
-    # Mountain - cr_irr and forest have violations
+    # Mountain - crop uses LCC only (small negative coef with nr_ur)
     'MT': {
-        'cr_irr': 'lcc',  # nr_ur has wrong sign in MT
-        'cr_dry': 'lcc + nr_ur',
+        'crop': 'lcc',  # nr_ur coef was -0.025
         'pasture': 'lcc + nr_ur',
         'range': 'lcc',
-        'forest': 'lcc',  # nr_ur has wrong sign in MT
+        'forest': 'lcc',
     },
 
-    # Pacific Coast - cr_dry has violation, forest has convergence issues
+    # Pacific Coast - pasture uses LCC only (essentially zero coef)
     'PC': {
-        'cr_irr': 'lcc + nr_ur',
-        'cr_dry': 'lcc',  # nr_ur has wrong sign in PC
-        'pasture': 'lcc + nr_ur',
+        'crop': 'lcc + nr_ur',
+        'pasture': 'lcc',  # nr_ur coef was ~0
         'range': 'lcc',
-        'forest': 'lcc',  # Convergence issues with nr_ur
+        'forest': 'lcc',
     },
 
-    # Southern Plains - cr_irr has violation
+    # Southern Plains - all signs correct
     'SP': {
-        'cr_irr': 'lcc',  # nr_ur has wrong sign in SP
-        'cr_dry': 'lcc + nr_ur',
+        'crop': 'lcc + nr_ur',
         'pasture': 'lcc + nr_ur',
         'range': 'lcc',
         'forest': 'lcc',

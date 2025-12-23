@@ -205,69 +205,6 @@ def get_5cat_full_name(code: int) -> str:
     return NRI_5CAT_CODES.get(code, f"Unknown ({code})")
 
 
-# =============================================================================
-# 6-Category Model (Crop-Pasture-Range-Forest-Urban with Irrigation Split)
-# =============================================================================
-
-# 6-category land use codes
-NRI_6CAT_CODES = {
-    1: "Irrigated cropland",
-    2: "Non-irrigated cropland",
-    3: "Pastureland",
-    4: "Rangeland",
-    5: "Forest land",
-    6: "Urban and built-up land",
-}
-
-MODELING_CODES_6CAT = {
-    1: "CR_IRR",   # Irrigated cropland
-    2: "CR_DRY",   # Non-irrigated cropland (dryland)
-    3: "PS",       # Pasture
-    4: "RG",       # Rangeland
-    5: "FR",       # Forest
-    6: "UR",       # Urban
-}
-
-# Reverse mapping for 6-category model
-CODE_TO_NAME_6CAT = {
-    "cr_irr": 1,
-    "irrigated": 1,
-    "irrigated_crop": 1,
-    "cr_dry": 2,
-    "dryland": 2,
-    "nonirrigated": 2,
-    "nonirrigated_crop": 2,
-    "ps": 3,
-    "pasture": 3,
-    "rg": 4,
-    "range": 4,
-    "rangeland": 4,
-    "fr": 5,
-    "forest": 5,
-    "forestland": 5,
-    "ur": 6,
-    "urban": 6,
-}
-
-# Net returns column names for 6-category model
-# Note: Only ag and urban have net returns; range and forest use LCC only
-NR_COLUMNS_6CAT = ['nr_cr_irr', 'nr_cr_dry', 'nr_ps', 'nr_ur']
-
-# Which land uses have net returns data (for mixed specification)
-USES_WITH_NET_RETURNS = {1, 2, 3, 6}  # CR_IRR, CR_DRY, PS, UR
-USES_LCC_ONLY = {4, 5}  # RG, FR
-
-# Land quality preferences for 6-category model
-LAND_QUALITY_PREFERENCES_6CAT = {
-    1: "high",     # Irrigated crop - best land, with irrigation investment
-    2: "high",     # Non-irrigated crop - still prefers good quality land
-    3: "medium",   # Pasture can use medium quality land
-    4: "low",      # Rangeland - typically marginal land
-    5: "low",      # Forest - typically on less suitable ag land
-    6: "any",      # Urban development less sensitive to agricultural quality
-}
-
-
 def nri_to_4cat(broad_code: int, irrtyp: int) -> int:
     """
     Convert NRI BROAD code + irrigation type to 4-category code.
@@ -297,38 +234,3 @@ def get_4cat_name(code: int) -> str:
 def get_4cat_full_name(code: int) -> str:
     """Get the full descriptive name for a 4-category code."""
     return NRI_4CAT_CODES.get(code, f"Unknown ({code})")
-
-
-def nri_to_6cat(broad_code: int, irrtyp: int) -> int:
-    """
-    Convert NRI BROAD code + irrigation type to 6-category code.
-
-    Args:
-        broad_code: NRI BROAD land use code (1=crop, 3=pasture, 4=range, 5=forest, 7=urban)
-        irrtyp: Irrigation type (0 = non-irrigated, >0 = irrigated)
-
-    Returns:
-        6-category code (1-6) or None if not in categories
-    """
-    if broad_code == 1:  # Cultivated cropland
-        return 1 if irrtyp > 0 else 2  # Irrigated vs dryland
-    elif broad_code == 3:  # Pastureland
-        return 3
-    elif broad_code == 4:  # Rangeland
-        return 4
-    elif broad_code == 5:  # Forest
-        return 5
-    elif broad_code == 7:  # Urban
-        return 6
-    else:
-        return None
-
-
-def get_6cat_name(code: int) -> str:
-    """Get the 6-category name for a given code."""
-    return MODELING_CODES_6CAT.get(code, f"Unknown ({code})")
-
-
-def get_6cat_full_name(code: int) -> str:
-    """Get the full descriptive name for a 6-category code."""
-    return NRI_6CAT_CODES.get(code, f"Unknown ({code})")

@@ -36,17 +36,7 @@ LANDUSE_4CAT = {
     'UR': 4,      # Urban
 }
 
-# Our 6-category codes (adding range and forest)
-LANDUSE_6CAT = {
-    'CR_IRR': 1,  # Irrigated cropland
-    'CR_DRY': 2,  # Non-irrigated cropland
-    'PS': 3,      # Pasture
-    'RG': 4,      # Rangeland
-    'FR': 5,      # Forest
-    'UR': 6,      # Urban
-}
-
-# Our 5-category codes (combined cropland)
+# Our 5-category codes (primary model - combined cropland)
 LANDUSE_5CAT = {
     'CR': 1,      # Cropland (irrigated + non-irrigated combined)
     'PS': 2,      # Pasture
@@ -55,11 +45,10 @@ LANDUSE_5CAT = {
     'UR': 5,      # Urban
 }
 
-# Reverse mapping for display (default to 6-cat)
+# Reverse mapping for display
 LANDUSE_NAMES_4CAT = {v: k for k, v in LANDUSE_4CAT.items()}
 LANDUSE_NAMES_5CAT = {v: k for k, v in LANDUSE_5CAT.items()}
-LANDUSE_NAMES_6CAT = {v: k for k, v in LANDUSE_6CAT.items()}
-LANDUSE_NAMES = LANDUSE_NAMES_6CAT  # Default to 6-cat
+LANDUSE_NAMES = LANDUSE_NAMES_5CAT  # Default to 5-cat (primary model)
 
 # =============================================================================
 # RPA Subregions - More granular regional breakdown
@@ -191,32 +180,6 @@ def nri_to_4cat(broad_code: int, irrtyp: int) -> Optional[int]:
         return LANDUSE_4CAT['PS']
     elif broad_code == NRI_BROAD_URBAN:
         return LANDUSE_4CAT['UR']
-    else:
-        return None
-
-
-def nri_to_6cat(broad_code: int, irrtyp: int) -> Optional[int]:
-    """
-    Convert NRI BROAD code + irrigation type to 6-category code.
-
-    Args:
-        broad_code: NRI BROAD land use code
-        irrtyp: Irrigation type (0 = non-irrigated, >0 = irrigated)
-
-    Returns:
-        6-category code (1-6) or None if not in our categories
-    """
-    if broad_code == NRI_BROAD_CROP:
-        # Split cropland by irrigation status
-        return LANDUSE_6CAT['CR_IRR'] if irrtyp > 0 else LANDUSE_6CAT['CR_DRY']
-    elif broad_code == NRI_BROAD_PASTURE:
-        return LANDUSE_6CAT['PS']
-    elif broad_code == NRI_BROAD_RANGE:
-        return LANDUSE_6CAT['RG']
-    elif broad_code == NRI_BROAD_FOREST:
-        return LANDUSE_6CAT['FR']
-    elif broad_code == NRI_BROAD_URBAN:
-        return LANDUSE_6CAT['UR']
     else:
         return None
 
@@ -456,200 +419,6 @@ def print_transition_matrix(df: pd.DataFrame, landuse_names: Dict = None) -> Non
         table.add_row(idx, *row_values)
 
     console.print(table)
-
-
-def extract_transitions_6cat(
-    nri_file: Path,
-    output_dir: Path,
-    start_year: int = 12,
-    end_year: int = 17,
-    chunk_size: int = 50000,
-    sample_size: Optional[int] = None
-) -> Dict[str, pd.DataFrame]:
-    """
-    Extract 6-category land use transitions from raw NRI data.
-
-    Categories:
-        1 = Irrigated Cropland (CR_IRR)
-        2 = Non-irrigated Cropland (CR_DRY)
-        3 = Pasture (PS)
-        4 = Rangeland (RG)
-        5 = Forest (FR)
-        6 = Urban (UR)
-
-    Args:
-        nri_file: Path to nri17_csv.csv
-        output_dir: Directory to save output files
-        start_year: Starting year (2-digit, e.g., 12 for 2012)
-        end_year: Ending year (2-digit, e.g., 17 for 2017)
-        chunk_size: Rows to process at a time
-        sample_size: Optional limit on total rows to process
-
-    Returns:
-        Dictionary of DataFrames by starting land use
-    """
-    output_dir = Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Valid BROAD codes for 6-category model
-    valid_broad_codes = [NRI_BROAD_CROP, NRI_BROAD_PASTURE, NRI_BROAD_RANGE,
-                         NRI_BROAD_FOREST, NRI_BROAD_URBAN]
-
-    # Columns we need from NRI
-    base_cols = ['state', 'county', 'fips', 'xfact']
-    year_suffixes = [f'{y:02d}' for y in range(start_year, end_year + 1)]
-
-    broad_cols = [f'broad{y}' for y in year_suffixes]
-    irrtyp_cols = [f'irrtyp{y}' for y in year_suffixes]
-    lcc_cols = [f'lcc{y}' for y in year_suffixes]
-
-    usecols = base_cols + broad_cols + irrtyp_cols + lcc_cols
-
-    console.print(f"[bold blue]Extracting 6-category NRI transitions from years 20{start_year}-20{end_year}[/]")
-    console.print(f"Categories: CR_IRR, CR_DRY, PS, RG, FR, UR")
-    console.print(f"Reading columns: {len(usecols)} total")
-
-    # Collect all transitions
-    all_transitions = []
-    rows_processed = 0
-
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-        console=console
-    ) as progress:
-        task = progress.add_task("Processing NRI chunks...", total=None)
-
-        for chunk in pd.read_csv(nri_file, usecols=usecols, chunksize=chunk_size,
-                                  dtype={'fips': str, 'state': str, 'county': str}):
-
-            if sample_size and rows_processed >= sample_size:
-                break
-
-            # Process each transition period (year t to year t+1)
-            for i, y in enumerate(year_suffixes[:-1]):
-                next_y = year_suffixes[i + 1]
-                year_int = 2000 + int(y)
-
-                broad_start = f'broad{y}'
-                broad_end = f'broad{next_y}'
-                irrtyp_start = f'irrtyp{y}'
-                irrtyp_end = f'irrtyp{next_y}'
-                lcc_col = f'lcc{y}'
-
-                # Filter to rows with valid land use codes (all 6 categories)
-                mask = (
-                    chunk[broad_start].isin(valid_broad_codes) &
-                    chunk[broad_end].isin(valid_broad_codes)
-                )
-
-                subset = chunk[mask].copy()
-                if len(subset) == 0:
-                    continue
-
-                # Fill missing irrtyp with 0 (non-irrigated)
-                subset[irrtyp_start] = pd.to_numeric(subset[irrtyp_start], errors='coerce').fillna(0).astype(int)
-                subset[irrtyp_end] = pd.to_numeric(subset[irrtyp_end], errors='coerce').fillna(0).astype(int)
-
-                # Convert to 6-category codes
-                subset['startuse'] = subset.apply(
-                    lambda r: nri_to_6cat(r[broad_start], r[irrtyp_start]), axis=1
-                )
-                subset['enduse'] = subset.apply(
-                    lambda r: nri_to_6cat(r[broad_end], r[irrtyp_end]), axis=1
-                )
-
-                # Clean LCC (extract first digit, default to 4)
-                subset['lcc'] = (
-                    subset[lcc_col]
-                    .astype(str)
-                    .str.extract(r'(\d)')[0]
-                    .fillna('4')
-                    .astype(int)
-                    .clip(1, 8)
-                )
-
-                # Clean xfact
-                subset['xfact'] = pd.to_numeric(subset['xfact'], errors='coerce').fillna(1.0)
-
-                # Build output dataframe
-                transitions = pd.DataFrame({
-                    'fips': subset['fips'].astype(str).str.zfill(5).astype(int),
-                    'year': year_int,
-                    'riad_id': subset.index.astype(str) + '_' + y,
-                    'startuse': subset['startuse'],
-                    'enduse': subset['enduse'],
-                    'lcc': subset['lcc'],
-                    'xfact': subset['xfact']
-                })
-
-                # Drop rows with invalid codes
-                transitions = transitions.dropna(subset=['startuse', 'enduse'])
-                transitions['startuse'] = transitions['startuse'].astype(int)
-                transitions['enduse'] = transitions['enduse'].astype(int)
-
-                all_transitions.append(transitions)
-
-            rows_processed += len(chunk)
-            progress.update(task, description=f"Processed {rows_processed:,} rows...")
-
-            if sample_size and rows_processed >= sample_size:
-                break
-
-    # Combine all transitions
-    console.print(f"\n[green]Processed {rows_processed:,} total rows[/]")
-
-    if not all_transitions:
-        console.print("[red]No valid transitions found![/]")
-        return {}
-
-    df = pd.concat(all_transitions, ignore_index=True)
-    console.print(f"[green]Total transitions: {len(df):,}[/]")
-
-    # Split by starting land use
-    results = {}
-    for code, name in LANDUSE_NAMES_6CAT.items():
-        subset = df[df['startuse'] == code].copy()
-        if len(subset) > 0:
-            results[name] = subset
-            console.print(f"  {name}: {len(subset):,} observations")
-
-    # Create georef file
-    georef = df[['fips']].drop_duplicates().copy()
-    georef['county_fips'] = georef['fips']
-    georef['state_fips'] = georef['fips'].astype(str).str.zfill(5).str[:2]
-    georef['region'] = georef['state_fips'].map(lambda x: STATE_REGIONS.get(x, 'WE'))
-    georef['subregion'] = georef['region']  # Simplified - same as region
-    georef = georef[['fips', 'county_fips', 'subregion', 'region']]
-
-    # Save files
-    console.print("\n[bold]Saving output files...[/]")
-
-    file_mapping = {
-        'CR_IRR': 'start_cr_irr.csv',
-        'CR_DRY': 'start_cr_dry.csv',
-        'PS': 'start_ps.csv',
-        'RG': 'start_rg.csv',
-        'FR': 'start_fr.csv',
-        'UR': 'start_ur.csv'
-    }
-
-    for name, filename in file_mapping.items():
-        if name in results:
-            filepath = output_dir / filename
-            results[name].to_csv(filepath, index=False)
-            console.print(f"  Saved: {filepath}")
-
-    georef_path = output_dir / 'georef.csv'
-    georef.to_csv(georef_path, index=False)
-    console.print(f"  Saved: {georef_path}")
-
-    # Print transition matrix
-    print_transition_matrix(df, LANDUSE_NAMES_6CAT)
-
-    return results
 
 
 def extract_transitions_5cat(

@@ -24,14 +24,14 @@ The model integrates two econometric approaches:
 1. **Ricardian Estimation**: Links climate variables to net economic returns for each land use (crops, pasture, forest, urban development)
 2. **Discrete Choice Model**: Estimates plot-level land use transition probabilities based on returns and land characteristics
 
-### Land Use Categories
+### Land Use Categories (5-Category Model - Primary)
 
 The model tracks transitions between five major land use types:
-- **Cropland (CR)**: Agricultural row crops
+- **Cropland (CR)**: Combined irrigated and non-irrigated agricultural cropland
 - **Pasture (PS)**: Grazing land and hay
+- **Rangeland (RG)**: Marginal grazing land, typically arid/semi-arid
 - **Forest (FR)**: Timberland and woodland
-- **Urban/Developed (UR)**: Residential, commercial, industrial
-- **Conservation Reserve Program (CRP)**: Federally enrolled conservation land
+- **Urban/Developed (UR)**: Residential, commercial, industrial (irreversible)
 
 ### Data Sources
 
@@ -85,14 +85,25 @@ Typical nesting structure:
 
 ### Model by Starting Use
 
-Five separate models are estimated (6-category version):
-1. **Irrigated Crop Start (CR_IRR)**: Land beginning in irrigated cropland
-2. **Dryland Crop Start (CR_DRY)**: Land beginning in non-irrigated cropland
-3. **Pasture Start (PS)**: Land beginning in pasture
-4. **Range Start (RG)**: Land beginning in rangeland
-5. **Forest Start (FR)**: Land beginning in forest
+Four separate models are estimated (5-category model):
+1. **Crop Start (CR)**: Land beginning in cropland (combined irrigated + non-irrigated)
+2. **Pasture Start (PS)**: Land beginning in pasture
+3. **Range Start (RG)**: Land beginning in rangeland
+4. **Forest Start (FR)**: Land beginning in forest
 
 **Important: No model is estimated for land starting in urban use.** We assume that once land is converted to urban/developed use, it never reverts to agricultural or natural land uses. This is a standard assumption in land use economics reflecting the high cost and practical irreversibility of urban development.
+
+### Model Specification by Starting Use
+
+Based on data availability and economic sign validation across RPA subregions:
+- **Crop Start**: LCC + urban net returns (nr_ur)
+- **Pasture Start**: LCC + urban net returns (nr_ur)
+- **Range Start**: LCC only (no rent data available)
+- **Forest Start**: LCC only (no rent data available)
+
+Note: Two region-specific exceptions for coefficient sign validity:
+- **Mountain (MT)**: Crop uses LCC only (nr_ur coefficient was negative)
+- **Pacific Coast (PC)**: Pasture uses LCC only (nr_ur coefficient near zero)
 
 ## Key Variables
 
@@ -181,29 +192,37 @@ This project aims to update the original modeling framework with:
 # Install dependencies
 uv pip install -e ".[dev]"
 
-# Generate test data
-uv run python -m landuse.data_generator
-
-# Run estimation
-uv run python -m landuse.main full config.json
+# Run 5-category model (primary)
+uv run python scripts/run_5cat_model.py
 
 # Run tests
 uv run pytest tests/
 ```
 
+### Model Output
+
+Results are saved to `output/5cat_full/results/`:
+- `model_summary.csv`: Summary of all estimated models
+- `coefficients/*.csv`: Coefficient estimates by region and start use
+- `predictions/*.csv`: Transition probability predictions
+
 ## Project Structure
 
 ```
-landuse-modeling/
+landuse-model/
 ├── src/landuse/
-│   ├── logit_estimation.py    # Core discrete choice models
+│   ├── logit_estimation.py    # Core discrete choice models (4-cat and 5-cat)
+│   ├── nri_extractor.py       # NRI data extraction (5-cat primary)
+│   ├── nri_codes.py           # Land use code definitions
+│   ├── region_specs.py        # Region-specific model specifications
+│   ├── rent_merger.py         # Ag and urban rent data merger
 │   ├── climate_impact.py      # Climate scenario analysis
-│   ├── marginal_effects.py    # Elasticity calculations
-│   ├── crp_enrollment.py      # CRP-specific modeling
-│   └── data_converter.py      # NRI data processing
+│   └── marginal_effects.py    # Elasticity calculations
+├── scripts/
+│   └── run_5cat_model.py      # Full 5-category model run script
+├── output/5cat_full/          # 5-category model results
 ├── tests/                     # Test suite
-├── archive/                   # Original R scripts
-└── examples/                  # Usage examples
+└── archive/                   # Original R scripts
 ```
 
 ## Code Style
