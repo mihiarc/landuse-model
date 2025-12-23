@@ -4,7 +4,38 @@ This project replicates and extends the econometric land use change modeling fra
 
 ## Theoretical Foundation
 
+> **Full theoretical documentation:** See [THEORY.md](THEORY.md) for complete mathematical derivations, equations, and detailed explanations.
+
+### Random Utility Model Framework
+
+The model is built on the **Random Utility Model (RUM)** framework (Train 2009). Landowners are assumed to choose the land use that maximizes their expected utility:
+
+```
+U_nj = V_nj + ε_nj
+```
+
+Where:
+- `U_nj` = Total utility of land use j for landowner n
+- `V_nj` = Systematic (observable) utility = β'X
+- `ε_nj` = Random (unobservable) component
+
+The probability of choosing land use i is the probability that its utility exceeds all alternatives:
+
+```
+P_ni = exp(V_ni) / Σ_j exp(V_nj)    [Multinomial Logit]
+```
+
+### Key Assumptions
+
+1. **Utility Maximization**: Landowners choose the use with highest expected returns
+2. **IID Extreme Value Errors**: Error terms follow Type I Extreme Value (Gumbel) distribution
+3. **Urban Irreversibility**: Once converted to urban, land never reverts (no urban-start model)
+4. **Regional Heterogeneity**: Separate models by RPA subregion capture local market conditions
+
 ### Source Literature
+
+**Econometric Methods:**
+- Train, K. (2009). *Discrete Choice Methods with Simulation*, 2nd Edition. Cambridge University Press. [Free online](https://eml.berkeley.edu/books/choice2.html)
 
 **Primary References:**
 - Mihiar, C. (2018). "An Econometric Analysis of the Impact of Climate Change on Forest Land Value and Broad Land-use Change." PhD Dissertation, Oregon State University. [ScholarsArchive@OSU](https://ir.library.oregonstate.edu/concern/graduate_thesis_or_dissertations/kp78gn36h)
@@ -104,6 +135,30 @@ Based on data availability and economic sign validation across RPA subregions:
 Note: Two region-specific exceptions for coefficient sign validity:
 - **Mountain (MT)**: Crop uses LCC only (nr_ur coefficient was negative)
 - **Pacific Coast (PC)**: Pasture uses LCC only (nr_ur coefficient near zero)
+
+### Expected Coefficient Signs
+
+**Economic Theory Predictions:**
+
+| Variable | End Use | Expected Sign | Interpretation |
+|----------|---------|---------------|----------------|
+| LCC | Agricultural | Negative | Lower LCC (better quality) → higher probability |
+| LCC | Urban | Ambiguous | Urban less sensitive to agricultural quality |
+| nr_ur | Urban | **Positive** | Higher urban returns → more conversion to urban |
+
+**Key Economic Insight:** The positive coefficient on `nr_ur` for urban transitions is the central prediction. It captures the "pull" of urban development: when urban land values rise, landowners are more likely to convert agricultural land to development.
+
+### RPA Subregions
+
+Models are estimated separately for each RPA (Resources Planning Act) subregion:
+
+| Code | Region | Code | Region |
+|------|--------|------|--------|
+| NE | Northeast | SE | Southeast |
+| LS | Lake States | DL | Delta |
+| CB | Corn Belt | SP | Southern Plains |
+| NP | Northern Plains | MT | Mountain |
+| AP | Appalachian | PC | Pacific Coast |
 
 ## Key Variables
 
